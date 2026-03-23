@@ -5,7 +5,7 @@ import { AlertTriangle } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const SubsystemChart = ({ data }) => {
+const SubsystemChart = ({ data, bottlenecks = [] }) => {
     const options = {
         responsive: true,
         maintainAspectRatio: false,
@@ -61,12 +61,14 @@ const SubsystemChart = ({ data }) => {
             <div className="relative h-80 w-full">
                 <Bar options={options} data={data} />
             </div>
-            <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100 text-sm text-yellow-800 flex items-start">
-                <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div>
-                    <span className="font-bold">병목 구간 경고:</span> Dp 서브시스템의 진행률이 0%이며, Dd(18.15%), Md(14.84%) 시스템 또한 평균 진행률에 크게 미치지 못하고 있습니다. 
+            {bottlenecks.length > 0 && (
+                <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-100 text-sm text-red-800 flex items-start animate-fade-in">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <span className="font-bold">병목 구간 경고:</span> {bottlenecks.join(', ')} 서브시스템의 진행률이 현재 0%로 병목 구간에 해당되어 프로젝트 일정에 영향을 줄 수 있습니다. 
+                    </div>
                 </div>
-            </div>
+            )}
         </section>
     );
 };

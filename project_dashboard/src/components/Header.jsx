@@ -1,8 +1,7 @@
 import React from 'react';
 import { Activity } from 'lucide-react';
-import { versions } from '../data/mockData';
 
-const Header = ({ currentVersion, onVersionChange }) => {
+const Header = ({ currentVersion, onVersionChange, versions = [] }) => {
     const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
     return (
