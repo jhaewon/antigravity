@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로젝트 T0020 동적 검증 대시보드</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <!-- 네비게이션/헤더 -->
+    <header class="glass-panel sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                <svg class="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                동적 검증 실무 대시보드
+            </h1>
+            <div class="flex items-center space-x-4">
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold border border-indigo-200">버전: T0020</span>
+                <span class="text-sm text-gray-500" id="current-date"></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        <!-- KPI 섹션 -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- 총 검증 대상 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
+                <div class="text-sm font-medium text-gray-500 mb-1">총 검증대상 요구사항 (Req)</div>
+                <div class="text-3xl font-bold text-gray-900" id="kpi-total">1,333</div>
+            </div>
+            
+            <!-- 완료 건수 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
+                <div class="text-sm font-medium text-gray-500 mb-1">완료 요구사항 (Req)</div>
+                <div class="text-3xl font-bold text-indigo-600" id="kpi-completed">782</div>
+                <div class="text-sm text-gray-400 mt-2">잔여: <span id="kpi-remaining" class="font-medium text-gray-600">551</span> 건</div>
+            </div>
+
+            <!-- 진행률 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center relative overflow-hidden transition-transform hover:-translate-y-1 duration-300">
+                <div class="relative z-10">
+                    <div class="text-sm font-medium text-gray-500 mb-1">전체 진행률</div>
+                    <div class="flex items-baseline space-x-2">
+                        <div class="text-3xl font-bold text-gray-900" id="kpi-progress">58.66%</div>
+                        <span id="status-badge" class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200">Delayed</span>
+                    </div>
+                </div>
+                <!-- 프로그레스 바 배경 -->
+                <div class="absolute bottom-0 left-0 h-1 bg-gray-100 w-full">
+                    <div class="h-full bg-red-500" style="width: 58.66%"></div>
+                </div>
+            </div>
+
+            <!-- 일정 현황 -->
+            <div class="bg-white rounded-xl shadow-sm border border-red-200 p-6 flex flex-col justify-center bg-red-50 transition-transform hover:-translate-y-1 duration-300">
+                <div class="text-sm font-medium text-red-600 mb-1">목표 일정 준수 여부</div>
+                <div class="text-xl font-bold text-red-700">심각한 지연 (At Risk)</div>
+                <div class="mt-2 text-sm text-red-600 flex justify-between">
+                    <span>목표: 2026.03.13</span>
+                    <span class="font-semibold">현재: 2026.03.16</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 메인 콘텐츠 영역 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- 차트 영역: 서브시스템별 상세 현황 -->
+            <section class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold text-gray-900">서브시스템별 상세 현황</h2>
+                    <span class="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-600 rounded">완료 vs 잔여 (건수)</span>
+                </div>
+                <div class="relative h-80 w-full">
+                    <canvas id="subsystemChart"></canvas>
+                </div>
+                <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100 text-sm text-yellow-800 flex items-start">
+                    <svg class="w-5 h-5 mr-2 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <span class="font-bold">병목 구간 경고:</span> Dp 서브시스템의 진행률이 0%이며, Dd(18.15%), Md(14.84%) 시스템 또한 평균 진행률에 크게 미치지 못하고 있습니다. 
+                    </div>
+                </div>
+            </section>
+
+            <!-- 리스크 & 얼럿 패널 -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
+                <div class="p-5 border-b border-gray-100 bg-gray-50 rounded-t-xl flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                        <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Risk Tracker
+                    </h2>
+                    <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-full">2 Critical</span>
+                </div>
+                
+                <div class="p-5 flex-1 overflow-y-auto space-y-4">
+                    <!-- Issue 1 -->
+                    <div class="border border-red-200 bg-red-50 rounded-lg p-4 left-border duration-200 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-red-600 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow-sm">Blocker</span>
+                            <span class="text-xs text-red-500 font-medium">3/4 ~ 3/9</span>
+                        </div>
+                        <h3 class="font-bold text-red-900 text-sm mb-1">VDI 접속 불가 이슈</h3>
+                        <p class="text-xs text-red-700 leading-relaxed mb-3">다수의 팀원이 사내 VDI 인프라 접속 불가로 인하여 해당 기간 동안 작업 불능 상태였습니다. (TC 실행 0건 기록)</p>
+                        <div class="pt-2 border-t border-red-200/50 flex justify-between text-xs">
+                            <span class="font-semibold text-red-800">영향받은 담당자:</span>
+                            <span class="text-red-700">황지원, 이혜윤 외</span>
+                        </div>
+                    </div>
+
+                    <!-- Issue 2 -->
+                    <div class="border border-orange-200 bg-orange-50 rounded-lg p-4 duration-200 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-orange-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow-sm">Warning</span>
+                        </div>
+                        <h3 class="font-bold text-orange-900 text-sm mb-1">담당자별 잔여 업무 과다</h3>
+                        <p class="text-xs text-orange-700 leading-relaxed mb-3">특정 담당자에게 미해결 요구사항이 편중되어 있으며, 일부 담당자의 진행률이 0%에 머물러 즉각적인 리소스 재배치가 필요합니다.</p>
+                        
+                        <ul class="text-xs space-y-2 mt-2 border-t border-orange-200/50 pt-2">
+                            <li class="flex justify-between items-center">
+                                <span class="text-orange-800 font-medium">황지원 (Dp)</span>
+                                <span class="bg-orange-200 text-orange-800 px-1.5 py-0.5 rounded text-[10px] font-bold">진행률 0%</span>
+                            </li>
+                            <li class="flex justify-between items-center">
+                                <span class="text-orange-800 font-medium">이혜윤 (Dd, Md)</span>
+                                <span class="bg-orange-200 text-orange-800 px-1.5 py-0.5 rounded text-[10px] font-bold">잔여 219건</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // 오늘 날짜 표시 세팅
+        document.getElementById('current-date').textContent = "조회일: " + new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Mock Data 컨텍스트 기반 구성
+        const subsystemData = {
+            labels: ['Dp', 'Dd', 'Md', 'Tqm', 'Vs', 'Pt', 'Rs', 'So', 'Ts'],
+            datasets: [
+                {
+                    label: '완료 (Completed)',
+                    data: [0, 25, 19, 150, 200, 150, 100, 80, 58],
+                    backgroundColor: [
+                        '#ef4444', // Dp (0% - Alert)
+                        '#f87171', // Dd (저조 - Alert)
+                        '#f87171', // Md (저조 - Alert)
+                        '#6366f1', '#6366f1', '#6366f1', '#6366f1', '#6366f1', '#6366f1'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 4,
+                },
+                {
+                    label: '잔여 (Remaining)',
+                    data: [80, 110, 109, 50, 50, 50, 50, 20, 32],
+                    backgroundColor: '#e5e7eb',
+                    borderWidth: 0,
+                    borderRadius: 4,
+                }
+            ]
+        };
+
+        // Chart.js 렌더링
+        const ctx = document.getElementById('subsystemChart').getContext('2d');
+        const subsystemChart = new Chart(ctx, {
+            type: 'bar',
+            data: subsystemData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                family: "'Pretendard', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                        titleFont: { family: "'Pretendard', sans-serif", size: 14 },
+                        bodyFont: { family: "'Pretendard', sans-serif", size: 13 },
+                        padding: 12,
+                        callbacks: {
+                            afterBody: function(context) {
+                                // 진행률 계산 표시
+                                const completed = context[0].raw;
+                                const remaining = context[1].raw;
+                                const total = completed + remaining;
+                                const percent = total > 0 ? ((completed / total) * 100).toFixed(2) : 0;
+                                return `\n총 할당량: ${total}건\n진행률: ${percent}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Pretendard', sans-serif",
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f3f4f6'
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Pretendard', sans-serif"
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    </script>
+</body>
+</html>
