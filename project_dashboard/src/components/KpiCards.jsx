@@ -8,7 +8,7 @@ const KpiCards = ({ data }) => {
                 <div className="text-sm font-medium text-gray-500 mb-1">총 검증대상 요구사항 (Req)</div>
                 <div className="text-3xl font-bold text-gray-900">{data.total.toLocaleString()}</div>
             </div>
-            
+
             {/* 완료 건수 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300">
                 <div className="text-sm font-medium text-gray-500 mb-1">완료 요구사항 (Req)</div>
@@ -43,38 +43,34 @@ const KpiCards = ({ data }) => {
                 </div>
                 {/* 프로그레스 바 배경 */}
                 <div className="absolute bottom-0 left-0 h-1 bg-gray-100 w-full">
-                    <div 
-                        className={`h-full ${data.status === 'Delayed' ? 'bg-red-500' : data.status === '완료' ? 'bg-blue-500' : 'bg-green-500'}`} 
+                    <div
+                        className={`h-full ${data.status === 'Delayed' ? 'bg-red-500' : data.status === '완료' ? 'bg-blue-500' : 'bg-green-500'}`}
                         style={{ width: `${data.progress}%` }}
                     ></div>
                 </div>
             </div>
 
             {/* 일정 현황 (하드코딩 제거 및 상태별 동적 UI 변경) */}
-            <div className={`rounded-xl shadow-sm border p-6 flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300 ${
-                data.status === '완료' ? 'bg-blue-50 border-blue-200' :
+            <div className={`rounded-xl shadow-sm border p-6 flex flex-col justify-center transition-transform hover:-translate-y-1 duration-300 ${data.status === '완료' ? 'bg-blue-50 border-blue-200' :
                 data.status === 'Delayed' ? 'bg-red-50 border-red-200' :
-                'bg-green-50 border-green-200'
-            }`}>
-                <div className={`text-sm font-medium mb-1 ${
-                    data.status === '완료' ? 'text-blue-600' :
+                    'bg-green-50 border-green-200'
+                }`}>
+                <div className={`text-sm font-medium mb-1 ${data.status === '완료' ? 'text-blue-600' :
                     data.status === 'Delayed' ? 'text-red-600' :
-                    'text-green-600'
-                }`}>목표 일정 준수 여부</div>
-                <div className={`text-xl font-bold ${
-                    data.status === '완료' ? 'text-blue-700' :
+                        'text-green-600'
+                    }`}>목표 일정 준수 여부</div>
+                <div className={`text-xl font-bold ${data.status === '완료' ? 'text-blue-700' :
                     data.status === 'Delayed' ? 'text-red-700' :
-                    'text-green-700'
-                }`}>
-                    {data.status === '완료' ? '개발 완료 (Completed)' : 
-                     data.status === 'Delayed' ? '심각한 지연 (At Risk)' : 
-                     '정상 진행 (On-Track)'}
+                        'text-green-700'
+                    }`}>
+                    {data.status === '완료' ? '검증 완료 (Completed)' :
+                        data.status === 'Delayed' ? '심각한 지연 (At Risk)' :
+                            '정상 진행 (On-Track)'}
                 </div>
-                <div className={`mt-2 text-sm flex justify-between ${
-                    data.status === '완료' ? 'text-blue-600' :
+                <div className={`mt-2 text-sm flex justify-between ${data.status === '완료' ? 'text-blue-600' :
                     data.status === 'Delayed' ? 'text-red-600' :
-                    'text-green-600'
-                }`}>
+                        'text-green-600'
+                    }`}>
                     <span>목표: {data.targetDate}</span>
                     <span className="font-semibold">현재: {data.currentDate}</span>
                 </div>
